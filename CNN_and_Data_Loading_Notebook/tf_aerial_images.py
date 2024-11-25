@@ -14,11 +14,8 @@ import sys
 import urllib
 import matplotlib.image as mpimg
 from PIL import Image
-
 import code
-
 import tensorflow.python.platform
-
 import numpy
 import tensorflow as tf
 
