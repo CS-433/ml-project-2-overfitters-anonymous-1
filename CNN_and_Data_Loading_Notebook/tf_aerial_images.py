@@ -210,7 +210,7 @@ def make_img_overlay(img, predicted_img):
     overlay = Image.fromarray(color_mask, "RGB").convert("RGBA")
     new_img = Image.blend(background, overlay, 0.2)
     return new_img
-
+#
 
 def main(argv=None):  # pylint: disable=unused-argument
     data_dir = "../Data/training/"
