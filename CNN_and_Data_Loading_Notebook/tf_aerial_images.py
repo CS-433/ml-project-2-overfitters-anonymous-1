@@ -17,6 +17,7 @@ from PIL import Image
 import code
 import tensorflow.python.platform
 import numpy
+import numpy as np
 import tensorflow as tf
 
 NUM_CHANNELS = 3  # RGB images
