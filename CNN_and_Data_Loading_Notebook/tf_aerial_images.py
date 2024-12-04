@@ -74,18 +74,21 @@ def extract_data(filename, img_patch_size):
     if not imgs:
         raise ValueError("No images found in directory: " + filename)
 
+    num_images = len(imgs)
     IMG_WIDTH = imgs[0].shape[0]
     IMG_HEIGHT = imgs[0].shape[1]
+    N_PATCHES_PER_IMAGE = (IMG_WIDTH / IMG_PATCH_SIZE) * (IMG_HEIGHT / IMG_PATCH_SIZE)
+
     img_patches = [
-        img_crop(img, img_patch_size, img_patch_size) for img in imgs
+        img_crop(imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(num_images)
     ]
     data = [
-        patch
-        for img_patches_set in img_patches
-        for patch in img_patches_set
+        img_patches[i][j]
+        for i in range(len(img_patches))
+        for j in range(len(img_patches[i]))
     ]
 
-    return np.asarray(data)
+    return numpy.asarray(data)
 
 
 
@@ -102,28 +105,35 @@ def value_to_class(v):
 # Extract label images
 def extract_labels(filename, img_patch_size):
     """Extract ground truth images including augmentations."""
-    labels = []
+    gt_imgs = []
     file_list = sorted([f for f in os.listdir(filename) if f.endswith(".png")])
     
     for label_filename in file_list:
         full_path = os.path.join(filename, label_filename)
         print("Loading " + full_path)
         label = mpimg.imread(full_path)
-        labels.append(label)
+        gt_imgs.append(label)
 
-    if not labels:
+    if not gt_imgs:
         raise ValueError("No labels found in directory: " + filename)
 
-    label_patches = [
-        img_crop(label, img_patch_size, img_patch_size) for label in labels
+    num_images = len(gt_imgs)
+    gt_patches = [
+        img_crop(gt_imgs[i], IMG_PATCH_SIZE, IMG_PATCH_SIZE) for i in range(num_images)
     ]
-    data = [
-        patch
-        for label_patches_set in label_patches
-        for patch in label_patches_set
-    ]
+    data = numpy.asarray(
+        [
+            gt_patches[i][j]
+            for i in range(len(gt_patches))
+            for j in range(len(gt_patches[i]))
+        ]
+    )
+    labels = numpy.asarray(
+        [value_to_class(numpy.mean(data[i])) for i in range(len(data))]
+    )
 
-    return np.asarray(data)
+    # Convert to dense 1-hot representation.
+    return labels.astype(numpy.float32)
 
 
 def error_rate(predictions, labels):
