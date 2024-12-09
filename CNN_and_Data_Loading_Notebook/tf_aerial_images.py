@@ -34,7 +34,7 @@ RECORDING_STEP = 0
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
 # image size should be an integer multiple of this number!
-IMG_PATCH_SIZE = 16
+IMG_PATCH_SIZE = 8
 
 tf.app.flags.DEFINE_string(
     "train_dir",
