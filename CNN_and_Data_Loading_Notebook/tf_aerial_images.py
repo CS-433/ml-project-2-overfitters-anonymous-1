@@ -215,8 +215,8 @@ def make_img_overlay(img, predicted_img):
 #
 
 def main(argv=None):  # pylint: disable=unused-argument
-    data_dir = "../Data/training/"
-    train_data_filename = data_dir + "images/"
+    data_dir = "../Data/test_set_images/"
+    train_data_filename = data_dir + ""
     train_labels_filename = data_dir + "groundtruth/"
 
     # Extract it into numpy arrays.
