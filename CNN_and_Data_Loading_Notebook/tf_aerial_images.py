@@ -338,10 +338,10 @@ def main(argv=None):  # pylint: disable=unused-argument
         image_filename = filename + folderid + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img)
+        img_prediction = get_prediction(img).astype(np.uint8)
         cimg = concatenate_images(img, img_prediction) # Commented out to predict 
 
-        return cimg #img_prediction
+        return img_prediction # cimg #img_prediction
 
     # Get prediction overlaid on the original image for given input file
     def get_prediction_with_overlay(filename, image_idx):
