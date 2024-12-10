@@ -338,10 +338,10 @@ def main(argv=None):  # pylint: disable=unused-argument
         image_filename = filename + folderid + imageid + ".png"
         img = mpimg.imread(image_filename)
 
-        img_prediction = get_prediction(img).astype(np.uint8)
-        cimg = concatenate_images(img, img_prediction) # Commented out to predict 
+        img_prediction = img_float_to_uint8(get_prediction(img))
+        # cimg = concatenate_images(img, img_prediction) # Commented out to predict 
 
-        return img_prediction # cimg #img_prediction
+        return img_prediction # cimg 
 
     # Get prediction overlaid on the original image for given input file
     def get_prediction_with_overlay(filename, image_idx):
@@ -572,7 +572,7 @@ def main(argv=None):  # pylint: disable=unused-argument
         prediction_training_dir = "predictions_test/"
         if not os.path.isdir(prediction_training_dir):
             os.mkdir(prediction_training_dir)
-        for i in range(1, 10 + 1):
+        for i in range(1, Num_Test_Images + 1):
             pimg = get_prediction_with_groundtruth("../Data/test_set_images/", i)
             Image.fromarray(pimg).save(
                 prediction_training_dir + "test_" + str(i) + ".png"
