@@ -30,6 +30,7 @@ BATCH_SIZE = 16  # 64
 NUM_EPOCHS = 100
 RESTORE_MODEL = True  # If True, restore existing model instead of training a new one
 RECORDING_STEP = 0
+Num_Test_Images = 50 # Number of images in test_set_images folder
 
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
@@ -215,8 +216,8 @@ def make_img_overlay(img, predicted_img):
 #
 
 def main(argv=None):  # pylint: disable=unused-argument
-    data_dir = "../Data/test_set_images/"
-    train_data_filename = data_dir + ""
+    data_dir = "../Data/training/"
+    train_data_filename = data_dir + "images/"
     train_labels_filename = data_dir + "groundtruth/"
 
     # Extract it into numpy arrays.
@@ -332,18 +333,19 @@ def main(argv=None):  # pylint: disable=unused-argument
 
     # Get a concatenation of the prediction and groundtruth for given input file
     def get_prediction_with_groundtruth(filename, image_idx):
-        imageid = "satImage_%.3d" % image_idx
-        image_filename = filename + imageid + ".png"
+        folderid = "test_%.1d/" % image_idx
+        imageid = "test_%.1d" % image_idx
+        image_filename = filename + folderid + imageid + ".png"
         img = mpimg.imread(image_filename)
 
         img_prediction = get_prediction(img)
-        cimg = concatenate_images(img, img_prediction)
+        cimg = concatenate_images(img, img_prediction) # Commented out to predict 
 
-        return cimg
+        return cimg #img_prediction
 
     # Get prediction overlaid on the original image for given input file
     def get_prediction_with_overlay(filename, image_idx):
-        imageid = "satImage_%.3d" % image_idx
+        imageid = "satImage_%.d" % image_idx
         image_filename = filename + imageid + ".png"
         img = mpimg.imread(image_filename)
 
@@ -566,17 +568,17 @@ def main(argv=None):  # pylint: disable=unused-argument
                 save_path = saver.save(s, FLAGS.train_dir + "/model.ckpt")
                 print("Model saved in file: %s" % save_path)
 
-        print("Running prediction on training set")
-        prediction_training_dir = "predictions_training/"
+        print("Running prediction on test set")
+        prediction_training_dir = "predictions_test/"
         if not os.path.isdir(prediction_training_dir):
             os.mkdir(prediction_training_dir)
-        for i in range(1, TRAINING_SIZE + 1):
-            pimg = get_prediction_with_groundtruth(train_data_filename, i)
+        for i in range(1, 10 + 1):
+            pimg = get_prediction_with_groundtruth("../Data/test_set_images/", i)
             Image.fromarray(pimg).save(
-                prediction_training_dir + "prediction_" + str(i) + ".png"
+                prediction_training_dir + "test_" + str(i) + ".png"
             )
-            oimg = get_prediction_with_overlay(train_data_filename, i)
-            oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
+            # oimg = get_prediction_with_overlay(train_data_filename, i)
+            # oimg.save(prediction_training_dir + "overlay_" + str(i) + ".png")
 
 
 if __name__ == "__main__":
