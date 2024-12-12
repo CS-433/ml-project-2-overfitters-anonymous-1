@@ -47,7 +47,7 @@ class UNet(nn.Module):
         # nb. of channels : 128 -> 64
         self.up_conv_0 = self.up_convolution_block(level=0, kernel_size=conv_kernel_size, stride=conv_stride)
 
-        # the last convolution - creates a prediction
+        # the last convolution 
         # nb. of channels : 64 -> 1
         self.final_conv = nn.Conv2d(64, 1, kernel_size=1)
 
