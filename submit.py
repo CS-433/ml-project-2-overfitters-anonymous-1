@@ -4,9 +4,6 @@ import os
 import numpy as np
 import matplotlib.image as mpimg
 import re
-from PIL import Image
-
-
 foreground_threshold = 0.25 # percentage of pixels > 1 required to assign a foreground label to a patch
 output_name = 'Predictions_U-Net_submission.csv' # Folder / name of the output file
 
@@ -18,8 +15,9 @@ def patch_to_label(patch):
     else:
         return 0
 
+from PIL import Image
 
-def mask_to_submission_strings(image_filename, desired_shape=(400, 400)):
+def mask_to_submission_strings(image_filename, desired_shape=(608, 608)):
     """Reads a single image, resizes it, and outputs the strings for the submission file."""
     img_number = int(re.search(r"\d+", image_filename).group(0))
     im = Image.open(image_filename).convert("L")  # Convert to grayscale if needed
@@ -32,7 +30,6 @@ def mask_to_submission_strings(image_filename, desired_shape=(400, 400)):
             patch = im_resized[i:i + patch_size, j:j + patch_size]
             label = patch_to_label(patch)
             yield("{:03d}{}{},{}".format(img_number,j,i,label))
-
 
 def masks_to_submission(submission_filename, *image_filenames):
     """Converts images into a submission file"""
