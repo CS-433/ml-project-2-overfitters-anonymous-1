@@ -29,7 +29,7 @@ def mask_to_submission_strings(image_filename, desired_shape=(608, 608)):
         for i in range(0, im_resized.shape[0], patch_size):
             patch = im_resized[i:i + patch_size, j:j + patch_size]
             label = patch_to_label(patch)
-            yield("{:03d}{}{},{}".format(img_number,j,i,label))
+            yield("{:03d}_{}_{},{}".format(img_number,j,i,label))
 
 def masks_to_submission(submission_filename, *image_filenames):
     """Converts images into a submission file"""
