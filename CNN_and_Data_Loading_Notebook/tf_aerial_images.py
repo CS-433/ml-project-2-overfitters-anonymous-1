@@ -39,7 +39,7 @@ IMG_PATCH_SIZE = 8
 
 tf.app.flags.DEFINE_string(
     "train_dir",
-    "./model_checkpoint_without_augment",
+    "./model_checkpoint_without_augment_test",
     """Directory where to write event logs """ """and checkpoint.""",
 )
 FLAGS = tf.app.flags.FLAGS
