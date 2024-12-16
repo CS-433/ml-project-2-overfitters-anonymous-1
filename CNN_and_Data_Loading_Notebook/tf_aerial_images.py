@@ -569,7 +569,7 @@ def main(argv=None):  # pylint: disable=unused-argument
                 print("Model saved in file: %s" % save_path)
 
         print("Running prediction on test set")
-        prediction_training_dir = "predictions_test/"
+        prediction_training_dir = "predictions_test_without_augment/"
         if not os.path.isdir(prediction_training_dir):
             os.mkdir(prediction_training_dir)
         for i in range(1, Num_Test_Images + 1):
