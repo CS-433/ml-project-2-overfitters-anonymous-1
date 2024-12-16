@@ -35,11 +35,11 @@ Num_Test_Images = 50 # Number of images in test_set_images folder
 # Set image patch size in pixels
 # IMG_PATCH_SIZE should be a multiple of 4
 # image size should be an integer multiple of this number!
-IMG_PATCH_SIZE = 8
+IMG_PATCH_SIZE = 16
 
 tf.app.flags.DEFINE_string(
     "train_dir",
-    "./model_checkpoint_without_augment_test",
+    "./model_checkpoint_without_augment",
     """Directory where to write event logs """ """and checkpoint.""",
 )
 FLAGS = tf.app.flags.FLAGS
