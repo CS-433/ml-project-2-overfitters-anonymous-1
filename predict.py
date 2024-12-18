@@ -7,7 +7,14 @@ import os
 import files_helpers as fh
 
 def prediction_from_image(trained_model, threshold, transform, image_path, predictions_dir, device):
-
+    """
+    trained_model : the path to the .pth file of the model
+    threshold : float, a pixel is a road if probability > threshold
+    transform : the transform to apply on the image : to tensor + normalization
+    image_path : str, the path of the image
+    predictions_dir : str, the path to the dir where predictions will be saved
+    device : 'cpu' or 'cuda'
+    """
     img = Image.open(image_path).convert("RGB")
 
     cuda_image = transform(img).unsqueeze(0)
@@ -76,7 +83,7 @@ def main(model_name, test_images_dir, predictions_dir, threshold):
         for image_path in all_images_paths:
             prediction_from_image(trained_model, threshold, transform, image_path, predictions_dir, device)
             
-            # print(f"Prediction for {prediction_name} saved to {prediction_path}")
+
     print(f"All predictions saved to {predictions_dir}\n")
 
 if __name__ == "__main__":

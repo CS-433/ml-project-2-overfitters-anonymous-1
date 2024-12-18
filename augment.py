@@ -31,6 +31,14 @@ def augment_image_and_mask(image, mask, scale_limits):
 
 
 def main(input_images_dir, input_masks_dir, output_images_dir, output_masks_dir, num_augment, scale_limit):
+    """
+    input_images_dir  : str, the path to the input images directory
+    input_masks_dir   : str, the path to the input masks directory
+    output_images_dir : str, the path to the directory to store the augmented images 
+    output_masks_dir  : str, the path to the directory to store the augmented masks 
+    num_augment       : int, the number of augmented images per original image
+    scale_limit       : (float, float), the values between which the zoom is applied
+    """
 
     print("\nAugmenting images sequence started.\n")
     
@@ -86,5 +94,5 @@ if __name__ == "__main__":
          input_masks_dir=input_masks_dir,
          output_images_dir=output_images_dir,
          output_masks_dir=output_masks_dir,
-         num_augment=30,
-         scale_limit=(-0.3, 1.5), )
+         num_augment=60,
+         scale_limit=(-0.4, 1.6), )

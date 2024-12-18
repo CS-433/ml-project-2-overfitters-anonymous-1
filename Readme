@@ -1,13 +1,29 @@
 ### general description ###
-
 These codes aims to train a model based on a UNet architecture capable of finding roads on satellite images of cities.
 For each pixel, it labels with a one if the pixel is on a road, and with a zero otherwise.
 
 ### needed installations ###
+The python version used is 3.10.14
+the needed libraries are :
+torch,
+torchvision,
+segmentation_models_pytorch,
+shutil,
+albumentations,
+numpy,
+cv2,
+PIL,
+tqdm,
+os, 
+matplotlib,
+re,
+datetime,
+time.
+The installations can be done using the command : **pip install replace_here_by_package_name**
+The code was run on widows, using a gpu. According to the pytorch website https://pytorch.org/, The correct command to use to install pytorch in such conditions is : 
+**pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118**
 
-
-
-### how to use : run.py ###
+### GENERATE MODEL AND PREDICTION : run.py ###
 to train a new model and generate predictions, run the run.py file with the desired parameters. the default ones are the parameters used to create our best model. 
 In particular, set correctly the following paths to your directories : 
 original_images_dir  : the path to the directory containing the 100 original images to be augmented
@@ -16,16 +32,26 @@ augmented_images_dir : the path to the directory for the augmented images to be 
 augmented_masks_dir  : the path to the directory for the augmented masks to be stored
 test_images_dir      : the path to the test images
 predictions_dir      : the path to the directory where predictions will be saved
+In principle the default folder names are such that everything works together. We recommand to change the default names only if you encounter a problem using them.
+
+The outputs are a folder with 50 png images of predicted masks corresponding to the 50 test images named according to predictions.dir, a model in a .pth file named automatically depending on the chosen parameters, and a csv file of the predictions in the right format for submission. 
 
 run.py calls the following scripts in order :
-augment.py - to augment data from original dataset
-train.py   - to normalize images, split them into train and validation set, then train and save the model. WARNING: LONG PROCESS -- see below.
-predict.py - to produce predictions, that are png images of the predicted masks of the test images
-submit.py  - to create a csv file in the right format for submission, from the png images created using predict
-show.py    - to have a quck overview of the results.
+1. augment.py - to augment data from original dataset
+2. train.py   - to normalize images, split them into train and validation set, then train and save the model. WARNING: LONG PROCESS 
+3. predict.py - to produce predictions, that are png images of the predicted masks of the test images
+4. submit.py  - to create a csv file in the right format for submission, from the png images created using predict
+5. show.py    - to have a quck overview of the results.
 
 
 ### overview file by file ###
+All python scripts can be run individually instead of through the run.py script. However, They still need to be called in order, as in the run.py, since :
+show.py need a predictions folder to exists and such file is created in predict.py
+same for submit.py
+predict.py need a model to produce predictions, and such model is created in train.py
+train.py need images to be trained on, and the training set of images is created in augment.py
+Hence the order.
+That is why we recommand to use run.py directly. it does all the steps.
 
 # UNet4.py / UNet5.py : the class that defines the used architecture. 
 both UNet are build in three phases :
@@ -57,6 +83,9 @@ The final step is a last convolution, going from 64 channels to 1 channel. The o
 # ImagesDataset.py : the class that simplifies the use of the dataset
 also contains the method to get the mean and std of the images to later normalize them.
 
+# files_helpers.py
+A script whose only use is to define simple functions to handle files, such as copy/remove a given file, or copy images from one folder to another. 
+
 # augment.py : produces the training images.
 100 images and 100 corresponding masks are taken and augmented to have a bigger dataset. The new created images are stored in two new folders of your choice. By default they are stored in training/all_images and training/all_groundtruth.
 The 100 original images and masks are also copied in these new folders. These folders now contains all the images used to train and validate the model during training.
@@ -68,3 +97,11 @@ then, the model is trained on the train dataset.
 at each epoch, the model is evaluated on the validation dataset. The model is saved at the epoch where the validation dataset was the best.
 
 # predict.py : creates png images of the predicted masks.
+Loads the just trained new model, and use it to make predictions on the 50 test images in the test_set_images folder.
+The predictions are png images and are stored in a new folder which name is given by the variable predictions_dir.
+
+# submit.py : creates a csv file from the predicted images
+goes through all the predicted masks png images and make a csv file from them in the correct format for submission.
+
+# show.py : results visualization
+selects randomly three images in the test folder and shows the corresponding predicted masks. It creates a 3x3 plot. each row corresponds to one single image. In the first column are the test images alone. In the second column are the superimposition of the image and the predicted masks over it. On the third column are the predicted masks alone. 

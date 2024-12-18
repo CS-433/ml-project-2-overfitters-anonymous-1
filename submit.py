@@ -1,6 +1,8 @@
 import numpy as np
 import re
 from PIL import Image
+import os
+
 
 # assign a label to a patch
 def patch_to_label(patch, foreground_threshold):
@@ -34,10 +36,12 @@ def masks_to_submission(submission_filename, foreground_threshold, *image_filena
             f.writelines('{}\n'.format(s) for s in mask_to_submission_strings(fn, foreground_threshold))
 
 
-def main(submission_filename, foreground_threshold):
+def main(predictions_dir,submission_filename, foreground_threshold):
+    # takes all the png images in the predicitons folder and used
     image_filenames = []
     for i in range(1, 51):
-        image_filename = 'predictions/' + 'test_%.1d' % i + '.png' 
+        image_filename = os.path.join(predictions_dir, 'test_%.1d' % i + '.png')
+        # 'predictions/' + 'test_%.1d' % i + '.png' 
         print(image_filename)
         image_filenames.append(image_filename)
     masks_to_submission(submission_filename, foreground_threshold, *image_filenames)
@@ -45,7 +49,8 @@ def main(submission_filename, foreground_threshold):
 
 if __name__ == '__main__':
 
+    predictions_dir = r'predictions'
     foreground_threshold = 0.25 # percentage of pixels > 1 required to assign a foreground label to a patch
     output_name = 'Predictions_submission.csv' # Folder / name of the output file
 
-    main(submission_filename=output_name, foreground_threshold=foreground_threshold)
+    main(predictions_dir=predictions_dir, submission_filename=output_name, foreground_threshold=foreground_threshold)

@@ -17,14 +17,35 @@ from segmentation_models_pytorch.losses import DiceLoss
 
 
 def train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, num_epochs, device):
+    """
+    training the model on one single epoch.
+    Args : 
+        model        : a UNet4 or UNet5 object  
+        train_loader : DataLoader object of the train set
+        val_loader   : DataLoader object of the validation set
+        criterion    : The choosen loss, here DiceLoss
+        optimizer    : the optimizing algorythm, here Adam
+        epoch        : the current epoch
+        num_epochs   : number of epochs to be trained on 
+        device       : 'cuda' or 'cpu'
+    Returns :
+        model : the trained model at last epoch
+        mean_train_loss : the mean train loss at this epoch
+        mean_val_loss : the mean validation loss at this epoch
+    """
+
     epoch_start_time = time.time()
 
     # training phase ###
     model.train()
-    train_loss = []
     model = model.to(device)
 
+    train_loss = []
+
+    # tqdm is just to have charging bar
     with tqdm(train_loader, desc=f"Epoch [{epoch+1}/{num_epochs}] - train      ", unit="batch") as pbar:
+        # training the model once on all train images and mask and tracking the loss
+
         for images, masks in pbar:
                 images, masks = images.to(device), masks.to(device)
 
@@ -41,8 +62,11 @@ def train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, nu
     # validation phase ###
     model.eval()
     val_loss = []
-    with torch.no_grad():                                                                  
+    with torch.no_grad():  
+        # compute loss on the validation set
+
         for images, masks in tqdm(val_loader, desc=f"Epoch [{epoch+1}/{num_epochs}] - validation " ):
+            
             images, masks = images.to(device), masks.to(device)
 
             outputs = model(images).squeeze(1)
@@ -65,23 +89,46 @@ def train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, nu
 
 
 def train(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=40, device="cuda"):
+    """
+    training the model over all epochs
+    Args : 
+        model        : a UNet4 or UNet5 object  
+        train_loader : DataLoader object of the train set
+        val_loader   : DataLoader object of the validation set
+        criterion    : The choosen loss, here DiceLoss
+        optimizer    : the optimizing algorythm, here Adam
+        sheduler     : manage the learning rate, reduces it if validation loss hits a plateau
+        num_epochs   : number of epochs to be trained on 
+        device       : 'cuda' or 'cpu'
+    Returns :
+        model : the trained model at last epoch
+        best_model_state : the model state dict at best epoch
+        best_epoch, int : the best epoch, the epoch for which validation loss is the smallest
+        best_mean_val_loss : the smallest validation loss
+        all_val_losses :  list of the values of validation loss for all epochs
+        all_train_losses :  list of the values of training loss for all epochs
+        all_learning_rates : list of the value of learning rate for all epochs
+        all these variables except model will later be saved to be used in plots.
+    """
 
-    print(f"using {device} with {num_epochs} epochs.\n")
+    print(f"using {device} with {num_epochs} epochs.\n")  # sanity check print
 
-    best_mean_val_loss = np.inf
+    # initialize all variables to be stored later
+    best_mean_val_loss = np.inf 
     best_model_state = None
     best_epoch = 0
     all_train_losses   = []
     all_val_losses     = []
     all_learning_rates = []
 
+    # trains through all epochs
     for epoch in range(num_epochs):
         model, mean_train_loss, mean_val_loss = train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, num_epochs, device)
 
         all_val_losses.append(mean_val_loss)
         all_train_losses.append(mean_train_loss)
 
-        if mean_val_loss < best_mean_val_loss:
+        if mean_val_loss < best_mean_val_loss: # if this epch was the best
             # updates best model info to later save the model with the best results
             best_epoch = epoch+1
             best_mean_val_loss = mean_val_loss
@@ -140,9 +187,9 @@ def main(model_name, train_image_dir, train_mask_dir, n_levels, num_epochs, lear
     train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
 
     # DataLoaders
-    pin_memory = torch.cuda.is_available()  # faster if using GPU
+    pin_memory   = torch.cuda.is_available()  # faster if using GPU
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin_memory)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=pin_memory)
+    val_loader   = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=pin_memory)
 
     # set model architecture
     if n_levels == 5:

@@ -11,15 +11,16 @@ def main(original_images_dir,
          test_images_dir,
          predictions_dir,
          n_levels=4,                # levels in the UNet, 4 or 5, but 5 is extremely slow 
-         num_augment=60,            # number of augmented images per original image
+         num_augment=1,             # number of augmented images per original image
          scale_limit=(-0.4, 1.6),   # scale of the zoom in the augmentation
-         num_epochs=50,             # number of epoch to train 
+         num_epochs=1,              # number of epoch to train 
          learning_rate=0.01,        # learning rate in the train
          weight_decay=0,            # weight decay for the adam optimizer  in the train
          batch_size=8,              # batch size in the train
          threshold=0.5,             # threshold for the predictions
          ):
      
+     # generates automatically a model name and a sumbission file name based on the desired parameters
      model_name = f"UNet{n_levels}_augm{num_augment}_epochs{num_epochs}_lr{learning_rate}_bs{batch_size}_wd{weight_decay}.pth"
      submission_filename = model_name[:-4] + "_submission.csv"
 
@@ -49,7 +50,8 @@ def main(original_images_dir,
                   threshold       = threshold)
      
      # create csv file from the png masks in the right format for submission
-     submit.main(submission_filename  = submission_filename,
+     submit.main(predictions_dir      = predictions_dir,
+                 submission_filename  = submission_filename,
                  foreground_threshold = 0.25)
 
      # show randomly three test images and their predicted masks

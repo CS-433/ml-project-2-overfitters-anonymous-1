@@ -5,8 +5,8 @@ import random
 import matplotlib.pyplot as plt
 
 
-##########
 def load_random_images_and_predictions(test_images_dir, predictions_dir):
+
     # List all subdirectories (folders) in the test images directory
     subfolders = [f.path for f in os.scandir(test_images_dir) if f.is_dir()]
     selected_folders = random.sample(subfolders, 3)  # Randomly select 3 folders
@@ -35,6 +35,12 @@ def load_random_images_and_predictions(test_images_dir, predictions_dir):
 
 
 def plot_ramdom_test_images(test_images_dir, predictions_dir):
+    """
+    makes a 3x3 plot using 3 test images chosen randomly.
+    for each line, plots :
+    the image alone, the superposition of the image and the mask, and the mask alone.
+    This id done for the 3 images, produciong a 3x3 plot. 
+    """
 
     images_and_predictions = load_random_images_and_predictions(test_images_dir, predictions_dir)
     images      = images_and_predictions[0]
@@ -73,12 +79,12 @@ def plot_ramdom_test_images(test_images_dir, predictions_dir):
     plt.subplots_adjust(wspace=-0.2, hspace=0.2)  # Decrease the spacing
     plt.tight_layout()
 
-##########
 
 def main(test_images_dir, predictions_dir):
 
     plot_ramdom_test_images(test_images_dir, predictions_dir)
     plt.show()
+
 
 if __name__ == "__main__" :
 

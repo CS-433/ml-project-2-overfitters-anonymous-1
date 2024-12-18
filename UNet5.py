@@ -116,8 +116,9 @@ class UNet5(nn.Module):
 
 
     def forward(self, x):
+        """ propagation of the data x through the UNet. """
         
-        skip0 = self.down_conv_0(x)
+        skip0 = self.down_conv_0(x) # slip is used for skip connections
         x = self.pool_0(skip0)
 
         skip1 = self.down_conv_1(x)
@@ -135,7 +136,7 @@ class UNet5(nn.Module):
         x = self.bottleneck(x)
         x = self.up_sampling_5(x)
 
-        x = torch.cat((x, skip4), dim=1)
+        x = torch.cat((x, skip4), dim=1) # concatenate skip connection from same level 
         x = self.up_conv_4(x)
         x = self.up_samlping_4(x)
 
