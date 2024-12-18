@@ -1,3 +1,5 @@
+The current best model can be found on this drive https://drive.google.com/file/d/1qnVs3nIrXyVfPU49zgVBrkWDmHHO3G3p/view?usp=drive_link.
+
 ### general description ###
 These codes aims to train a model based on a UNet architecture capable of finding roads on satellite images of cities.
 For each pixel, it labels with a one if the pixel is on a road, and with a zero otherwise.
