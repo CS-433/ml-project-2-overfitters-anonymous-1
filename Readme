@@ -19,11 +19,11 @@ matplotlib,
 re,
 datetime,
 time.
-The installations can be done using the command : **pip install replace_here_by_package_name**
+The installations can be done using the command : **pip install replace_here_by_package_name **
 The code was run on widows, using a gpu. According to the pytorch website https://pytorch.org/, The correct command to use to install pytorch in such conditions is : 
-**pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118**
+**pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 **
 
-### GENERATE MODEL AND PREDICTION : run.py ###
+### GENERATE MODEL AND PREDICTION : run.py
 to train a new model and generate predictions, run the run.py file with the desired parameters. the default ones are the parameters used to create our best model. 
 In particular, set correctly the following paths to your directories : 
 original_images_dir  : the path to the directory containing the 100 original images to be augmented
