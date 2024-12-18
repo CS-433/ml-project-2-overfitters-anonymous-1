@@ -1,4 +1,4 @@
-The current best model can be found on this drive https://drive.google.com/file/d/1qnVs3nIrXyVfPU49zgVBrkWDmHHO3G3p/view?usp=drive_link.
+The current best model can be found on this drive https://drive.google.com/file/d/1qnVs3nIrXyVfPU49zgVBrkWDmHHO3G3p/view?usp=drive_link, and is named UNet4_augm60_epochs50_lr0.01_bs8_wd0.pth.
 
 ### general description ###
 These codes aims to train a model based on a UNet architecture capable of finding roads on satellite images of cities.
