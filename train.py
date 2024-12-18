@@ -1,5 +1,5 @@
-from torch.utils.data import random_split, DataLoader
-from UNet import UNet
+from UNet5 import UNet5
+from UNet4 import UNet4
 from ImagesDataset import ImagesDataset
 
 from tqdm import tqdm 
@@ -7,9 +7,11 @@ import time
 import datetime
 
 import numpy as np
+
 import torch
 import torch.optim as optim  
-from torch.utils.data import DataLoader 
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data import random_split, DataLoader
 from torchvision import transforms 
 from segmentation_models_pytorch.losses import DiceLoss
 
@@ -62,15 +64,16 @@ def train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, nu
 
 
 
-def train(model, train_loader, val_loader, criterion, optimizer, num_epochs=40, device="cuda"):
+def train(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=40, device="cuda"):
 
     print(f"using {device} with {num_epochs} epochs.\n")
 
     best_mean_val_loss = np.inf
     best_model_state = None
     best_epoch = 0
-    all_train_losses = []
-    all_val_losses   = []
+    all_train_losses   = []
+    all_val_losses     = []
+    all_learning_rates = []
 
     for epoch in range(num_epochs):
         model, mean_train_loss, mean_val_loss = train_epoch(model, train_loader, val_loader, criterion, optimizer, epoch, num_epochs, device)
@@ -83,20 +86,28 @@ def train(model, train_loader, val_loader, criterion, optimizer, num_epochs=40, 
             best_epoch = epoch+1
             best_mean_val_loss = mean_val_loss
             best_model_state = model.state_dict()
+        
+        # update the learning rate
+        scheduler.step(mean_val_loss)
+        # Store the current learning rate
+        current_lr = optimizer.param_groups[0]['lr']
+        all_learning_rates.append(current_lr)
 
-    return model, best_model_state, best_epoch, best_mean_val_loss, all_val_losses, all_train_losses
+    return model, best_model_state, best_epoch, best_mean_val_loss, all_val_losses, all_train_losses, all_learning_rates
         
 
-def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate, weight_decay, batch_size):
+def main(model_name, train_image_dir, train_mask_dir, n_levels, num_epochs, learning_rate, weight_decay, batch_size, n_augment):
 
+    # some prints to check if model has the desired parameters before letting it train for hours
     print(f"model_name       : {model_name}")
+    print(f"n_levels         : {n_levels}")
     print(f"learning_rate    : {learning_rate}")
     print(f"batch_size       : {batch_size}")
     print(f"weight decay     : {weight_decay}")
     print(f"train images dir : {train_image_dir}")
     print(f"train masks dir  : {train_mask_dir}\n")
 
-    # Create dataset
+    # mak and images have different transforms : we don't want the maks to be normaized
     image_transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor()
@@ -106,7 +117,7 @@ def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate,
         transforms.ToTensor()
     ])
 
-    # Full dataset
+    # the full dataset, will be split in train and validation
     full_dataset = ImagesDataset(train_image_dir, train_mask_dir, 
                                 image_transform=image_transform, 
                                 mask_transform=mask_transform)
@@ -129,20 +140,28 @@ def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate,
     train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
 
     # DataLoaders
-    pin_memory = torch.cuda.is_available()
+    pin_memory = torch.cuda.is_available()  # faster if using GPU
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin_memory)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=pin_memory)
 
-    # set model architecture, loss and optimizer
-    model = UNet()
-    criterion = DiceLoss(mode='binary')
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # do we want weight decay ? 
+    # set model architecture
+    if n_levels == 5:
+        model = UNet5() # turns out 5 levels is computationaly too expensive
+    elif n_levels == 4:
+        model = UNet4()
+    else :
+        model = UNet4()
+        print(f"\nUnet with {n_levels} levels is not implemented - model is build with 4 levels by default.\n")
 
-    # the training
+    criterion = DiceLoss(mode='binary')
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=4, min_lr=1e-4)    # learning rates decades by *0.1 when loss hits a plateau on a given number of consecutive epochs.
+
+    # the training ###
     train_start_time = datetime.datetime.now()
     print(f"Training started at: {train_start_time}")
     
-    _, best_model_state, best_epoch, best_mean_val_loss, all_val_losses, all_train_losses = train(model, train_loader, val_loader, criterion, optimizer, num_epochs)
+    _, best_model_state, best_epoch, best_mean_val_loss, all_val_losses, all_train_losses, all_learning_rates = train(model,train_loader, val_loader, criterion, optimizer, scheduler, num_epochs)
 
     train_end_time = datetime.datetime.now()
     print(f"\nTraining ended at: {train_end_time}")
@@ -150,9 +169,11 @@ def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate,
     duration = train_end_time - train_start_time
     print(f"Training duration: {duration}")
 
-    # saving the model
+    # saving the model ###
+    # all variables are saved to use them later to make plots
     torch.save({
         'model_state_dict'  : best_model_state,
+        'n_levels'          : n_levels,
         'num_epochs'        : num_epochs,
         'best_epoch'        : best_epoch,
         'mean'              : mean,
@@ -160,11 +181,13 @@ def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate,
         'val_loss'          : best_mean_val_loss,
         'all_val_losses'    : all_val_losses,
         'all_train_losses'  : all_train_losses,
+        'all_learning_rates': all_learning_rates,
         'batch_size'        : batch_size,
         'learning_rate'     : learning_rate,
         'weight_decay'      : weight_decay,
         'training_duration' : duration,
         'image_transform'   : full_dataset.image_transform,
+        'n_aumgent'         : n_augment,
         }, model_name)
     
     print("\nModel saved as : ",model_name,"\n")
@@ -172,19 +195,23 @@ def main(model_name, train_image_dir, train_mask_dir, num_epochs, learning_rate,
 
 if __name__ == "__main__":
      
-    train_image_dir = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\training\\all_images'
-    train_mask_dir = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\training\\all_groundtruth'
+    train_image_dir = r'training\all_images'
+    train_mask_dir = r'training\all_groundtruth'
      
     num_epochs = 1
-    learning_rate = 0.01
+    learning_rate = 0.1
     batch_size = 8
     weight_decay = 0
-    model_name = f"test_UNet_4lev_Dice_norm_augmV3_split_{num_epochs}epochs.pth"
+    n_levels = 4
+    n_augment = 30
+    model_name = f"UNet{n_levels}_epochs{num_epochs}_lr{learning_rate}_bs{batch_size}_wd{weight_decay}.pth"
 
     main(model_name      = model_name,
          train_image_dir = train_image_dir,
          train_mask_dir  = train_mask_dir,
+         n_levels        = n_levels,
          num_epochs      = num_epochs,
          learning_rate   = learning_rate,
          weight_decay    = weight_decay,
-         batch_size      = batch_size)
+         batch_size      = batch_size,
+         n_augment       = n_augment)

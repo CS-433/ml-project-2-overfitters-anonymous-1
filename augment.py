@@ -75,12 +75,12 @@ def main(input_images_dir, input_masks_dir, output_images_dir, output_masks_dir,
 
 if __name__ == "__main__":
     # The path of the directories where all the input images and masks are 
-    input_images_dir = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\original_data\\images\\'
-    input_masks_dir = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\original_data\\groundtruth\\'
+    input_images_dir = r'original_data\images'
+    input_masks_dir = r'original_data\groundtruth'
 
     # the path of the directories of the augmented images / masks
-    output_images_dir = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\training\\all_images\\'
-    output_masks_dir  = 'C:\\Users\\Gauthier\\Desktop\\EPFL\\Master\\Machine Learning\\projet\\project_2\\test\\training\\all_groundtruth\\'
+    output_images_dir = r'training\all_images'
+    output_masks_dir  = r'training\all_groundtruth'
 
     main(input_images_dir=input_images_dir,
          input_masks_dir=input_masks_dir,

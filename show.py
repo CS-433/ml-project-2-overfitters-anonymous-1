@@ -82,8 +82,7 @@ def main(test_images_dir, predictions_dir):
 
 if __name__ == "__main__" :
 
-    test_images_dir = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\test_set_images'
-    predictions_dir = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\predictions'
-    model_name = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\models\test_UNet_4lev_Dice_norm_augmV3_split_1epochs.pth'
+    test_images_dir = r'test_set_images'
+    predictions_dir = r'predictions'
 
     main(test_images_dir=test_images_dir, predictions_dir=predictions_dir)

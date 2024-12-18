@@ -1,0 +1,70 @@
+### general description ###
+
+These codes aims to train a model based on a UNet architecture capable of finding roads on satellite images of cities.
+For each pixel, it labels with a one if the pixel is on a road, and with a zero otherwise.
+
+### needed installations ###
+
+
+
+### how to use : run.py ###
+to train a new model and generate predictions, run the run.py file with the desired parameters. the default ones are the parameters used to create our best model. 
+In particular, set correctly the following paths to your directories : 
+original_images_dir  : the path to the directory containing the 100 original images to be augmented
+original_masks_dir   : the path to the directory containing the 100 original masks to be augmented
+augmented_images_dir : the path to the directory for the augmented images to be stored
+augmented_masks_dir  : the path to the directory for the augmented masks to be stored
+test_images_dir      : the path to the test images
+predictions_dir      : the path to the directory where predictions will be saved
+
+run.py calls the following scripts in order :
+augment.py - to augment data from original dataset
+train.py   - to normalize images, split them into train and validation set, then train and save the model. WARNING: LONG PROCESS -- see below.
+predict.py - to produce predictions, that are png images of the predicted masks of the test images
+submit.py  - to create a csv file in the right format for submission, from the png images created using predict
+show.py    - to have a quck overview of the results.
+
+
+### overview file by file ###
+
+# UNet4.py / UNet5.py : the class that defines the used architecture. 
+both UNet are build in three phases :
+- the encoding, "the descending part of the U", reduces the image spatial size while augmenting the number of channels.
+- the bottleneck, "the bottom of the U", the part where the spatial size is the smallest. It increases a last time the number of channels without changing the spatial size.
+- the decoding, "the ascending part of the U", decreases the number of channels, while augmenting the spatial size to the original one.
+
+The levels describe the depth of the UNet. The more encoding, the more deep the model, the higher the level. 
+Unet4() is a 4 level UNet.
+Unet5() is a 5 level Unet.
+
+The UNet is build using "convolution blocks". Each convolution block is a succession of :
+- A 2d convolution, that doobles the number of channels in the ascending part*, divided it by 2 in the ascending,
+*(The  very first convolution block is such that the number of channels goes from 3 to 64.)
+- A batch normalization,
+- The application of a ReLU,
+- then again a 2d convolution that keeping the same number of channels,
+- batchnorm again,
+- then finally ReLU again.
+
+In the encoding phase, at each level, a convolution block is applied followed by a Maxpool that divides the spatial size by 2.
+The bottleneck applies again a convolution block. It is the highest value of level. e.g. in a 4 level UNet, the bottleneck's level is 4.  
+In The decoding phase, a convolution block is applied followed by a transpose convolution that increases again the spatial size and divide by two the number of channels to let room for skip connection. 
+
+Skip connections are added between the encoding and decoding part of each level.
+
+The final step is a last convolution, going from 64 channels to 1 channel. The output is then further used to make predictions.
+
+# ImagesDataset.py : the class that simplifies the use of the dataset
+also contains the method to get the mean and std of the images to later normalize them.
+
+# augment.py : produces the training images.
+100 images and 100 corresponding masks are taken and augmented to have a bigger dataset. The new created images are stored in two new folders of your choice. By default they are stored in training/all_images and training/all_groundtruth.
+The 100 original images and masks are also copied in these new folders. These folders now contains all the images used to train and validate the model during training.
+
+# train.py : trains the model. WARNING: THE PROCESS MAY TAKE UP TO ~12H ON A REGULAR MACHINE.
+the augmented images are normalized.
+the dataset is split into a train dataset containing 80% of the images, and the remaining 20% are in a validation dataset.
+then, the model is trained on the train dataset.
+at each epoch, the model is evaluated on the validation dataset. The model is saved at the epoch where the validation dataset was the best.
+
+# predict.py : creates png images of the predicted masks.

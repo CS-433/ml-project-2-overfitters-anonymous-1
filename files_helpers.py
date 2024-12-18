@@ -18,7 +18,7 @@ def remove_folder(folder):
         except Exception as e:
             print(f"Error while removing folder '{folder}': {e}")
     else:
-        print(f"'{folder}' is not a valid directory.")
+        print(f"'{folder}' does not exists.")
 
 
 

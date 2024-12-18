@@ -1,4 +1,5 @@
-from UNet import UNet
+from UNet4 import UNet4
+from UNet5 import UNet5
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -26,10 +27,12 @@ def prediction_from_image(trained_model, threshold, transform, image_path, predi
     prediction_name = os.path.basename(image_path)  # Extract image name
     prediction_path = os.path.join(predictions_dir, prediction_name)
 
+
     # save also  in png file, for visualization
     prediction_mask_image = Image.fromarray((prediction_mask * 255).astype('uint8'))
     prediction_mask_image.save(prediction_path)
     
+    # csv_helpers.create_csv_submission()
     return prediction_mask
 
 
@@ -42,6 +45,7 @@ def main(model_name, test_images_dir, predictions_dir, threshold):
     model_state_dict  = checkpoint['model_state_dict']
     mean              = checkpoint['mean']
     std               = checkpoint['std']
+    n_levels          = checkpoint.get("n_levels", 4)
 
     transform =  transforms.Compose([transforms.Resize((256, 256)),  
                                      transforms.ToTensor(),   
@@ -49,7 +53,11 @@ def main(model_name, test_images_dir, predictions_dir, threshold):
                                      ])
     
     # Load the model state
-    model = UNet()
+    if n_levels == 5:
+        model = UNet5()
+    else :
+        model = UNet4()
+
     model.load_state_dict(model_state_dict)
     model.eval()
 
@@ -72,8 +80,8 @@ def main(model_name, test_images_dir, predictions_dir, threshold):
     print(f"All predictions saved to {predictions_dir}\n")
 
 if __name__ == "__main__":
-    model_name = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\models\UNet_4lev_Dice_norm_augmV2_79epochs.pth'
-    test_images_dir = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\test_set_images'
-    predictions_dir = r'C:\Users\Gauthier\Desktop\EPFL\Master\Machine Learning\projet\project_2\test\predictions'
+    model_name = r'UNet4_augm60_epochs50_lr0.01_bs8_wd0.pth'
+    test_images_dir = r'test_set_images'
+    predictions_dir = r'predictions'
     threshold = 0.5
     main(model_name, test_images_dir, predictions_dir, threshold)
